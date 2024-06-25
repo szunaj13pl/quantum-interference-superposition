@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wizualizacja zjawisk kwantowych</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .chart-container {
+            width: 80%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+        .controls, .definitions {
+            width: 80%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+        .control {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 200px;
+        }
+        .definition {
+            margin-bottom: 15px;
+        }
+        .definition h3 {
+            margin-bottom: 5px;
+        }
+        #languageToggle {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button id="languageToggle">Switch to English</button>
+
+    <h1 id="mainTitle">Wizualizacja zjawisk kwantowych</h1>
+    
+    <div class="controls">
+        <div class="control">
+            <label for="frequencySlider" id="frequencyLabel">Częstotliwość fal:</label>
+            <input type="range" id="frequencySlider" min="0.1" max="2" step="0.1" value="1">
+            <span id="frequencyValue">1</span>
+        </div>
+        <div class="control">
+            <label for="amplitudeSlider" id="amplitudeLabel">Amplituda fal:</label>
+            <input type="range" id="amplitudeSlider" min="0.1" max="2" step="0.1" value="1">
+            <span id="amplitudeValue">1</span>
+        </div>
+        <div class="control">
+            <label for="speedSlider" id="speedLabel">Szybkość animacji:</label>
+            <input type="range" id="speedSlider" min="0.1" max="2" step="0.1" value="1">
+            <span id="speedValue">1</span>
+        </div>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="interferenceChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="superpositionChart"></canvas>
+    </div>
+
+    <div class="definitions">
+        <h2 id="definitionsTitle">Definicje</h2>
+        <div class="definition">
+            <h3 id="interferenceTitle">Interferancja kwantowa</h3>
+            <p id="interferenceDefinition">Zjawisko nakładania się fal kwantowych, prowadzące do wzmocnienia lub wygaszenia amplitudy wypadkowej.</p>
+        </div>
+        <div class="definition">
+            <h3 id="superpositionTitle">Superpozycja kwantowa</h3>
+            <p id="superpositionDefinition">Stan kwantowy, w którym układ może znajdować się jednocześnie w wielu stanach bazowych, dopóki nie zostanie dokonany pomiar.</p>
+        </div>
+    </div>
+
+    <script>
+        let frequency = 1;
+        let amplitude = 1;
+        let speed = 1;
+        let isPolish = true;
+
+        const translations = {
+            pl: {
+                mainTitle: "Wizualizacja zjawisk kwantowych",
+                frequencyLabel: "Częstotliwość fal:",
+                amplitudeLabel: "Amplituda fal:",
+                speedLabel: "Szybkość animacji:",
+                definitionsTitle: "Definicje",
+                interferenceTitle: "Interferancja kwantowa",
+                interferenceDefinition: "Zjawisko nakładania się fal kwantowych, prowadzące do wzmocnienia lub wygaszenia amplitudy wypadkowej.",
+                superpositionTitle: "Superpozycja kwantowa",
+                superpositionDefinition: "Stan kwantowy, w którym układ może znajdować się jednocześnie w wielu stanach bazowych, dopóki nie zostanie dokonany pomiar.",
+                languageToggle: "Switch to English"
+            },
+            en: {
+                mainTitle: "Visualization of Quantum Phenomena",
+                frequencyLabel: "Wave frequency:",
+                amplitudeLabel: "Wave amplitude:",
+                speedLabel: "Animation speed:",
+                definitionsTitle: "Definitions",
+                interferenceTitle: "Quantum Interference",
+                interferenceDefinition: "The phenomenon of quantum waves overlapping, leading to reinforcement or cancellation of the resulting amplitude.",
+                superpositionTitle: "Quantum Superposition",
+                superpositionDefinition: "A quantum state in which a system can exist in multiple base states simultaneously until a measurement is made.",
+                languageToggle: "Przełącz na polski"
+            }
+        };
+
+        function updateLanguage() {
+            const lang = isPolish ? 'pl' : 'en';
+            document.getElementById('mainTitle').textContent = translations[lang].mainTitle;
+            document.getElementById('frequencyLabel').textContent = translations[lang].frequencyLabel;
+            document.getElementById('amplitudeLabel').textContent = translations[lang].amplitudeLabel;
+            document.getElementById('speedLabel').textContent = translations[lang].speedLabel;
+            document.getElementById('definitionsTitle').textContent = translations[lang].definitionsTitle;
+            document.getElementById('interferenceTitle').textContent = translations[lang].interferenceTitle;
+            document.getElementById('interferenceDefinition').textContent = translations[lang].interferenceDefinition;
+            document.getElementById('superpositionTitle').textContent = translations[lang].superpositionTitle;
+            document.getElementById('superpositionDefinition').textContent = translations[lang].superpositionDefinition;
+            document.getElementById('languageToggle').textContent = translations[lang].languageToggle;
+            
+            interferenceChart.options.plugins.title.text = isPolish ? 'Interferancja kwantowa' : 'Quantum Interference';
+            superpositionChart.options.plugins.title.text = isPolish ? 'Superpozycja kwantowa' : 'Quantum Superposition';
+            interferenceChart.update();
+            superpositionChart.update();
+        }
+
+        document.getElementById('languageToggle').addEventListener('click', function() {
+            isPolish = !isPolish;
+            updateLanguage();
+        });
+
+        // Funkcja do generowania danych dla wykresu interferencji
+        function generateInterferenceData(t) {
+            const data = [];
+            for (let x = 0; x <= 10; x += 0.1) {
+                const y1 = amplitude * Math.sin(frequency * (x - t));
+                const y2 = amplitude * Math.sin(frequency * (x + t));
+                data.push({ x, y1, y2, y3: y1 + y2 });
+            }
+            return data;
+        }
+
+        // Inicjalizacja wykresu interferencji
+        const interferenceCtx = document.getElementById('interferenceChart').getContext('2d');
+        const interferenceChart = new Chart(interferenceCtx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Fala 1',
+                    borderColor: 'blue',
+                    data: []
+                }, {
+                    label: 'Fala 2',
+                    borderColor: 'green',
+                    data: []
+                }, {
+                    label: 'Interferencja',
+                    borderColor: 'red',
+                    data: []
+                }]
+            },
+            options: {
+                animation: false,
+                scales: {
+                    x: { type: 'linear', position: 'bottom', min: 0, max: 10 },
+                    y: { min: -2, max: 2 }
+                },
+                plugins: { title: { display: true, text: 'Interferancja kwantowa' } }
+            }
+        });
+
+        // Inicjalizacja wykresu superpozycji
+        const superpositionCtx = document.getElementById('superpositionChart').getContext('2d');
+        const superpositionChart = new Chart(superpositionCtx, {
+            type: 'bar',
+            data: {
+                labels: ['|0⟩', '|1⟩'],
+                datasets: [{
+                    label: 'Prawdopodobieństwo',
+                    data: [0, 0],
+                    backgroundColor: ['rgba(54, 162, 235, 0.5)', 'rgba(255, 99, 132, 0.5)']
+                }]
+            },
+            options: {
+                animation: false,
+                scales: { y: { beginAtZero: true, max: 1 } },
+                plugins: { title: { display: true, text: 'Superpozycja kwantowa' } }
+            }
+        });
+
+        // Funkcja animacji
+        let t = 0;
+        function animate() {
+            t += 0.05 * speed;
+            
+            // Aktualizacja danych interferencji
+            const interferenceData = generateInterferenceData(t);
+            interferenceChart.data.datasets[0].data = interferenceData.map(d => ({x: d.x, y: d.y1}));
+            interferenceChart.data.datasets[1].data = interferenceData.map(d => ({x: d.x, y: d.y2}));
+            interferenceChart.data.datasets[2].data = interferenceData.map(d => ({x: d.x, y: d.y3}));
+            interferenceChart.update();
+            
+            // Aktualizacja danych superpozycji
+            const a = Math.cos(frequency * t);
+            const b = Math.sin(frequency * t);
+            superpositionChart.data.datasets[0].data = [a*a, b*b];
+            superpositionChart.update();
+            
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // Obsługa suwaków
+        document.getElementById('frequencySlider').addEventListener('input', function(e) {
+            frequency = parseFloat(e.target.value);
+            document.getElementById('frequencyValue').textContent = frequency.toFixed(1);
+        });
+
+        document.getElementById('amplitudeSlider').addEventListener('input', function(e) {
+            amplitude = parseFloat(e.target.value);
+            document.getElementById('amplitudeValue').textContent = amplitude.toFixed(1);
+            interferenceChart.options.scales.y.min = -2 * amplitude;
+            interferenceChart.options.scales.y.max = 2 * amplitude;
+        });
+
+        document.getElementById('speedSlider').addEventListener('input', function(e) {
+            speed = parseFloat(e.target.value);
+            document.getElementById('speedValue').textContent = speed.toFixed(1);
+        });
+    </script>
+</body>
+</html>
